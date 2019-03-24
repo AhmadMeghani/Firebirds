@@ -71,6 +71,7 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
             @Override
             public void onLocationChanged(Location location) {
                 updateLocationInfo(location);
+                locationManager.removeUpdates(locationListener);
                 Log.i("Log", location.toString());
             }
 
@@ -97,7 +98,7 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
                             Manifest.permission.WRITE_EXTERNAL_STORAGE},
                     1);
         } else {
-            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 10, 0, locationListener);
+            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 2000, 1000, locationListener);
             Location lastKnownLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
             if (lastKnownLocation != null) {
                 updateLocationInfo(lastKnownLocation);
