@@ -160,7 +160,9 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
                 CameraActivity.this.camera.stopPreview();
                 bitmap = BitmapFactory.decodeByteArray(data, 0, data.length);
                 map = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), null, true);
-                map = RotateBitmap(map, 90);
+                if (currentCameraId == Camera.CameraInfo.CAMERA_FACING_BACK) {
+                    map = RotateBitmap(map, 90);
+                }
                 while (address == "") {
                     Log.i("Loc", "Locating");
                     locationUpdater();
