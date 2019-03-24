@@ -26,6 +26,7 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -159,7 +160,9 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
             public void onPictureTaken(byte[] data, Camera camera) {
                 CameraActivity.this.camera.stopPreview();
                 bitmap = BitmapFactory.decodeByteArray(data, 0, data.length);
-                map = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), null, true);
+                DisplayMetrics displayMetrics = new DisplayMetrics();
+                getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
+                map = Bitmap.createBitmap(bitmap, 0, 0, displayMetrics.widthPixels, displayMetrics.heightPixels, null, true);
                 if (currentCameraId == Camera.CameraInfo.CAMERA_FACING_BACK) {
                     map = RotateBitmap(map, 90);
                 }else {
