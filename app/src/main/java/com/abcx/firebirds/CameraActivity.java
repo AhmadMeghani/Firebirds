@@ -1,6 +1,7 @@
 package com.abcx.firebirds;
 
 import android.Manifest;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -40,7 +41,9 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
     private SurfaceView camLayout;
     private Camera camera;
     private SurfaceHolder surfaceHolder;
+    private ProgressDialog mProgressDialogue;
     private Camera.PictureCallback pictureCallback;
+    private Bitmap bitmap, map;
     private String address = "";
     LocationManager locationManager;
     LocationListener locationListener;
@@ -59,6 +62,11 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
             public void onLocationChanged(Location location) {
                 updateLocationInfo(location);
                 locationManager.removeUpdates(this);
+                map = UtilityFunctions.pasteWatermark(map, getIntent().getStringExtra("btn_extra"),
+                        address, CameraActivity.this);
+                storePhoto(map, UtilityFunctions.getTimeStamp());
+                mProgressDialogue.dismiss();
+                CameraActivity.this.camera.startPreview();
             }
 
             @Override
@@ -110,16 +118,23 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
         pictureCallback = new Camera.PictureCallback() {
             @Override
             public void onPictureTaken(byte[] data, Camera camera) {
-                Bitmap bitmap = BitmapFactory.decodeByteArray(data, 0, data.length);
-                Bitmap map = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), null, true);
+                bitmap = BitmapFactory.decodeByteArray(data, 0, data.length);
+                map = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), null, true);
                 map = RotateBitmap(map, 90);
-                if (address != "") {
-                    map = UtilityFunctions.pasteWatermark(map, getIntent().getStringExtra("btn_extra"),
-                            address, CameraActivity.this);
-                } else {
+                // if (address != "") {
+                //     map = UtilityFunctions.pasteWatermark(map, getIntent().getStringExtra("btn_extra"),
+                //             address, CameraActivity.this);
+                // } else {
                     // re check Location here
-                }
-                storePhoto(map, UtilityFunctions.getTimeStamp());
+                //  }
+                //storePhoto(map, UtilityFunctions.getTimeStamp());
+                mProgressDialogue = new ProgressDialog(CameraActivity.this);
+                mProgressDialogue.setTitle("Uploading Image...");
+                mProgressDialogue.setMessage("Please wait a moment while we upload your Image");
+                mProgressDialogue.setCanceledOnTouchOutside(false);
+                mProgressDialogue.setCancelable(false);
+                mProgressDialogue.show();
+                
                 CameraActivity.this.camera.startPreview();
             }
         };

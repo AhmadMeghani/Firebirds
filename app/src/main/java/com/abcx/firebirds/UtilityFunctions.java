@@ -22,9 +22,11 @@ public class UtilityFunctions {
                 .rubberStamp(watermarkText)
                 .rubberStampPosition(RubberStampPosition.BOTTOM_LEFT)
                 .alpha(255)
-                .textColor(Color.WHITE)
-                .textShadow(1.0f, 5, 5, Color.BLACK)
+                .textColor(Color.rgb(239, 236, 213))
+                .margin(1, -10)
+                .textShadow(1.0f, 1, 1, Color.BLACK)
                 .textSize(10)
+                .textFont("HVD-Fonts-BrandonGrotesque-Regular.otf")
                 .build();
 
         RubberStamp rubberStamp = new RubberStamp(context);
@@ -45,4 +47,6 @@ public class UtilityFunctions {
         Log.d("date", "watermark: " + formattedDate);
         return formattedDate;
     }
+
+
 }
