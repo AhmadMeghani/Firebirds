@@ -34,5 +34,17 @@
         android:layout_marginRight="20dp"
         app:srcCompat="@drawable/ic_action_close" />
 
+    <ImageButton
+        android:id="@+id/camSwitch"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentBottom="true"
+        android:layout_marginRight="110dp"
+        android:layout_marginBottom="65dp"
+        android:background="@android:color/transparent"
+        android:contentDescription="TODO"
+        app:srcCompat="@drawable/ic_action_front" />
+
 
 </RelativeLayout>
