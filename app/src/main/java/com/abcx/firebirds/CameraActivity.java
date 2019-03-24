@@ -162,11 +162,16 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
                 map = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), null, true);
                 if (currentCameraId == Camera.CameraInfo.CAMERA_FACING_BACK) {
                     map = RotateBitmap(map, 90);
+                }else {
+                    if (currentCameraId == Camera.CameraInfo.CAMERA_FACING_FRONT) {
+                    map = RotateBitmap(map, -90);
                 }
-                while (address == "") {
-                    Log.i("Loc", "Locating");
-                    locationUpdater();
+
                 }
+//                while (address == "") {
+//                    Log.i("Loc", "Locating");
+//                    locationUpdater();
+//                }
                 mProgressDialogue.hide();
                 mProgressDialogue.setTitle("Saving Image");
                 Log.i("Tag", "Saving");
@@ -186,22 +191,6 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
                 mgr.playSoundEffect(AudioManager.FLAG_PLAY_SOUND);
             }
         };
-    }
-
-    private int findFrontFacingCamera(int currentCamera) {
-        int cameraId = -1;
-        // Search for the front facing camera
-        int numberOfCameras = Camera.getNumberOfCameras();
-        for (int i = 0; i < numberOfCameras; i++) {
-            Camera.CameraInfo info = new Camera.CameraInfo();
-            Camera.getCameraInfo(i, info);
-            if (currentCamera != Camera.CameraInfo.CAMERA_FACING_FRONT) {
-
-                cameraId = i;
-                break;
-            }
-        }
-        return cameraId;
     }
 
     private void locationUpdater() {
