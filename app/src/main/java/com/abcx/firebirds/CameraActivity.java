@@ -29,7 +29,10 @@ import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.ImageButton;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -40,7 +43,8 @@ import java.util.Locale;
 
 public class CameraActivity extends AppCompatActivity implements SurfaceHolder.Callback {
 
-    private Button btnCapture, btnDone;
+    private Button btnCapture;
+    private ImageButton btnDone;
     private SurfaceView camLayout;
     private Camera camera;
     private SurfaceHolder surfaceHolder;
@@ -56,6 +60,8 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
+        requestWindowFeature(Window.FEATURE_NO_TITLE);
+        this.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_camera);
         camLayout = findViewById(R.id.cameraLayout);
@@ -73,6 +79,7 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
                 updateLocationInfo(location);
                 locationManager.removeUpdates(locationListener);
                 Log.i("Log", location.toString());
+                locationManager.removeUpdates(locationListener);
             }
 
             @Override
@@ -102,6 +109,7 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
             Location lastKnownLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
             if (lastKnownLocation != null) {
                 updateLocationInfo(lastKnownLocation);
+
             }
         }
 
