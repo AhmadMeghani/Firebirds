@@ -44,6 +44,7 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
     private ProgressDialog mProgressDialogue;
     private Camera.PictureCallback pictureCallback;
     private Bitmap bitmap, map;
+    private Boolean pictureTaken = false;
     private String address = "";
     LocationManager locationManager;
     LocationListener locationListener;
@@ -62,11 +63,14 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
             public void onLocationChanged(Location location) {
                 updateLocationInfo(location);
                 locationManager.removeUpdates(this);
-                map = UtilityFunctions.pasteWatermark(map, getIntent().getStringExtra("btn_extra"),
-                        address, CameraActivity.this);
-                storePhoto(map, UtilityFunctions.getTimeStamp());
-                mProgressDialogue.dismiss();
-                CameraActivity.this.camera.startPreview();
+                if (pictureTaken == false) {
+                    map = UtilityFunctions.pasteWatermark(map, getIntent().getStringExtra("btn_extra"),
+                            address, CameraActivity.this);
+                    storePhoto(map, UtilityFunctions.getTimeStamp());
+                    mProgressDialogue.dismiss();
+                    CameraActivity.this.camera.startPreview();
+                    pictureTaken = true;
+                }
             }
 
             @Override
@@ -121,20 +125,23 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
                 bitmap = BitmapFactory.decodeByteArray(data, 0, data.length);
                 map = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), null, true);
                 map = RotateBitmap(map, 90);
-                // if (address != "") {
-                //     map = UtilityFunctions.pasteWatermark(map, getIntent().getStringExtra("btn_extra"),
-                //             address, CameraActivity.this);
-                // } else {
-                    // re check Location here
-                //  }
+                if (address != "") {
+                    map = UtilityFunctions.pasteWatermark(map, getIntent().getStringExtra("btn_extra"),
+                            address, CameraActivity.this);
+                    storePhoto(map, UtilityFunctions.getTimeStamp());
+                    pictureTaken = true;
+                } else {
+                    //re check Location here
+                    mProgressDialogue = new ProgressDialog(CameraActivity.this);
+                    mProgressDialogue.setTitle("Uploading Image...");
+                    mProgressDialogue.setMessage("Please wait a moment while we upload your Image");
+                    mProgressDialogue.setCanceledOnTouchOutside(false);
+                    mProgressDialogue.setCancelable(false);
+                    mProgressDialogue.show();
+                }
                 //storePhoto(map, UtilityFunctions.getTimeStamp());
-                mProgressDialogue = new ProgressDialog(CameraActivity.this);
-                mProgressDialogue.setTitle("Uploading Image...");
-                mProgressDialogue.setMessage("Please wait a moment while we upload your Image");
-                mProgressDialogue.setCanceledOnTouchOutside(false);
-                mProgressDialogue.setCancelable(false);
-                mProgressDialogue.show();
-                
+
+
                 CameraActivity.this.camera.startPreview();
             }
         };
@@ -225,8 +232,9 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
         }
         Camera.Parameters params = camera.getParameters();
         params.setPreviewFrameRate(20);
-        params.setPictureSize(640, 480);
+        //params.setPictureSize(640, 480);
         params.setFocusMode(Camera.Parameters.FOCUS_MODE_AUTO);
+        params.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE);
         params.setFlashMode(Camera.Parameters.FLASH_MODE_OFF);
         camera.setParameters(params);
         camera.setDisplayOrientation(90);
@@ -236,10 +244,19 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
         } catch (IOException e) {
             e.printStackTrace();
         }
+        List<Camera.Size> sizes = params.getSupportedPictureSizes();
+        Camera.Size size = sizes.get(0);
+        for (int i = 0; i < sizes.size(); i++) {
+            if (sizes.get(i).width > size.width)
+                size = sizes.get(i);
+        }
+        params.setPictureSize(size.width, size.height);
+
     }
 
     @Override
     public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
+
 
     }
 

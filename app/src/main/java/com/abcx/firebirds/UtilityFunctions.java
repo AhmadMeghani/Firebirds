@@ -25,7 +25,7 @@ public class UtilityFunctions {
                 .textColor(Color.rgb(239, 236, 213))
                 .margin(1, -10)
                 .textShadow(1.0f, 1, 1, Color.BLACK)
-                .textSize(10)
+                .textSize(100)
                 .textFont("HVD-Fonts-BrandonGrotesque-Regular.otf")
                 .build();
 
