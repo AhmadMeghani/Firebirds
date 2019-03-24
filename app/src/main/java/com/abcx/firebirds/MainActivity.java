@@ -39,6 +39,10 @@ public class MainActivity extends AppCompatActivity {
         y.setTypeface(typeface);
     }
 
+    public void click(View view){
+        Intent intent = new Intent(this, CameraActivity.class);
+        startActivity(intent);
+    }
     public void captureImage(View view) {
 
         Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
