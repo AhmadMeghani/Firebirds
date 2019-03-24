@@ -1,24 +1,47 @@
 package com.abcx.firebirds;
 
+import android.Manifest;
+import android.content.Context;
+import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
 import android.graphics.Matrix;
 import android.hardware.Camera;
+import android.location.Address;
+import android.location.Geocoder;
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
 import android.media.MediaScannerConnection;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageView;
+
+import com.vinaygaba.rubberstamp.RubberStamp;
+import com.vinaygaba.rubberstamp.RubberStampConfig;
+import com.vinaygaba.rubberstamp.RubberStampPosition;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.List;
+import java.util.Locale;
 
 public class CameraActivity extends AppCompatActivity implements SurfaceHolder.Callback {
 
@@ -27,6 +50,10 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
     private Camera camera;
     private SurfaceHolder surfaceHolder;
     private Camera.PictureCallback pictureCallback;
+    private ImageView imageView;
+    private String watermarkText = "", address = "";
+    LocationManager locationManager;
+    LocationListener locationListener;
     private static final int REQUEST_CAMERA_PERMISSION = 200;
 
     @Override
@@ -36,6 +63,41 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
         camLayout = findViewById(R.id.cameraLayout);
         btnCapture = findViewById(R.id.clickButton);
         btnDone = findViewById(R.id.done);
+        locationManager = (LocationManager)this.getSystemService(Context.LOCATION_SERVICE);
+        locationListener = new LocationListener() {
+            @Override
+            public void onLocationChanged(Location location) {
+                updateLocationInfo();
+                locationManager.removeUpdates(this);
+            }
+
+            @Override
+            public void onStatusChanged(String provider, int status, Bundle extras) {
+
+            }
+
+            @Override
+            public void onProviderEnabled(String provider) {
+
+            }
+
+            @Override
+            public void onProviderDisabled(String provider) {
+
+            }
+        };
+
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED){
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION},1);
+        } else{
+            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,0,0,locationListener);
+            Location lastKnownLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+            if(lastKnownLocation != null){
+                updateLocationInfo();
+            }
+        }
+
+
         btnDone.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -57,7 +119,7 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
                 Bitmap bitmap = BitmapFactory.decodeByteArray(data, 0, data.length);
                 Bitmap map = Bitmap.createBitmap(bitmap, 0, 0,bitmap.getWidth(), bitmap.getHeight(), null, true);
                 map = RotateBitmap(map, 90);
-
+                map = pasteWatermark(map);
                 // To Do Watermark code here use map variable
 
                 storePhoto(map, "rtm1");
@@ -74,19 +136,19 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
     }
     private void storePhoto(Bitmap map, String path) {
         File file = new File(Environment.getExternalStorageDirectory() + "/DCIM/Firebird");
-        if (!file.isDirectory()){
+        if (!file.isDirectory()) {
             file.mkdir();
         }
-        try{
+        try {
             FileOutputStream outputStream = new FileOutputStream(file + "/photo" + path + ".jpeg");
             map.compress(Bitmap.CompressFormat.JPEG, 100, outputStream);
             outputStream.flush();
             outputStream.close();
-            MediaScannerConnection.scanFile(this,new String[] { file.getAbsolutePath() + "/photo" + path + ".jpeg" }, null,new MediaScannerConnection.OnScanCompletedListener() {
-                public void onScanCompleted(String path, Uri uri) {
-
-                }
-            });
+            Intent mediaScanIntent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
+            File f = new File(file + "/photo" + path + ".jpeg");
+            Uri contentUri = Uri.fromFile(f);
+            mediaScanIntent.setData(contentUri);
+            this.sendBroadcast(mediaScanIntent);
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         } catch (IOException e) {
@@ -94,7 +156,6 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
         }
         finish();
     }
-
     @Override
     public void surfaceCreated(SurfaceHolder holder) {
         try{
@@ -125,6 +186,83 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
         camera.stopPreview();
         camera.release();
         camera = null;
+    }
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        if (requestCode == 1) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                startListening();
+            }
+        }
+    }
+
+    public void startListening(){
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 10, locationListener);
+        }
+    }
+    public void updateLocationInfo(){
+        double lat = 40.682997;
+        double log = -73.9416842;
+
+        Geocoder geocoder = new Geocoder(this, Locale.getDefault());
+
+        try {
+            List<Address> listAddresses = geocoder.getFromLocation(lat, log, 1);
+            if (listAddresses != null && listAddresses.size() > 0){
+                address="";
+
+                if (listAddresses.get(0).getFeatureName() != null ){
+                    address+= listAddresses.get(0).getFeatureName() + ", ";
+                }
+
+                if (listAddresses.get(0).getLocality() != null ){
+                    address+= listAddresses.get(0).getLocality() + ",";
+                }
+
+                if (listAddresses.get(0).getAdminArea() != null ){
+                    address+= listAddresses.get(0).getAdminArea() + ", ";
+                }
+
+                if (listAddresses.get(0).getCountryName() != null ){
+                    address+= listAddresses.get(0).getCountryName();
+                }
+
+                Log.d("address", "updateLocationInfo: "+address);
+
+            }
+        }catch(Exception e){
+            e.printStackTrace();
+
+        }
+
+    }
+
+    public Bitmap pasteWatermark(Bitmap bitmap) {
+
+        Calendar c = Calendar.getInstance();
+
+        SimpleDateFormat df = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
+        String formattedDate = df.format(c.getTime());
+        Log.d("date", "watermark: " + formattedDate);
+
+        watermarkText = "(" + getIntent().getStringExtra("btn_extra") + ") - " + formattedDate + " - " + address;
+        Log.d("water", "watermark: " + watermarkText);
+
+
+
+        RubberStampConfig config = new RubberStampConfig.RubberStampConfigBuilder()
+                .base(bitmap)
+                .rubberStamp(watermarkText)
+                .rubberStampPosition(RubberStampPosition.BOTTOM_CENTER)
+                .alpha(255)
+                .textColor(Color.WHITE)
+                .textShadow(1.0f, 5, 5, Color.BLACK)
+                .textSize(20)
+                .build();
+
+        RubberStamp rubberStamp = new RubberStamp(this);
+        return rubberStamp.addStamp(config);
     }
 }
 

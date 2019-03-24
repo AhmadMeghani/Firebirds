@@ -2,25 +2,16 @@ package com.abcx.firebirds;
 
 import android.content.Intent;
 import android.graphics.Typeface;
-import android.net.Uri;
 import android.os.Bundle;
-import android.os.Environment;
-import android.provider.MediaStore;
-import android.support.v4.content.FileProvider;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
-
-import java.io.File;
-import java.io.IOException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 
 public class MainActivity extends AppCompatActivity {
 
     private static final int IMAGE_REQUEST = 1;
     String currentImagePath = null;
-    Button n, x, y;
+    Button btnWoodFired, btnFirst, btnSecond;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -28,60 +19,39 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        n = findViewById(R.id.button1);
         Typeface typeface = Typeface.createFromAsset(getAssets(), "HVD-Fonts-BrandonGrotesque-Regular.otf");
-        n.setTypeface(typeface);
-
-        x = findViewById(R.id.button);
-
-        x.setTypeface(typeface);
-
-        y = findViewById(R.id.button3);
-        y.setTypeface(typeface);
-    }
-
-    public void click(View view){
-        Intent intent = new Intent(this, CameraActivity.class);
-        startActivity(intent);
-    }
-    public void captureImage(View view) {
-
-        Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-
-        if (cameraIntent.resolveActivity(getPackageManager()) != null) {
-            File imageFile = null;
-
-//            try {
-//                //imageFile = getImageFile();
-//            } catch (IOException e) {
-//                e.printStackTrace();
-//            }
-
-            if (imageFile != null) {
-                Uri imageUri = FileProvider.getUriForFile(this, "com.example.android.fileprovider", imageFile);
-                cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, imageUri);
-                startActivityForResult(cameraIntent, IMAGE_REQUEST);
+        btnWoodFired = findViewById(R.id.woodFired);
+        btnWoodFired.setTypeface(typeface);
+        btnWoodFired.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                click(btnWoodFired.getText().toString());
             }
-        }
+        });
 
+        btnFirst = findViewById(R.id.first);
+        btnFirst.setTypeface(typeface);
+        btnFirst.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                click(btnFirst.getText().toString());
+            }
+        });
 
+        btnSecond = findViewById(R.id.second);
+        btnSecond.setTypeface(typeface);
+        btnSecond.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                click(btnSecond.getText().toString());
+            }
+        });
     }
 
-    public void xxx(View view) {
-        Intent intent = new Intent(MainActivity.this, imageView.class);
-        intent.putExtra("image_path", currentImagePath);
-        intent.putExtra("btn_text", x.getText().toString());
+    public void click(String stg){
+        Intent intent = new Intent(this, CameraActivity.class);
+        intent.putExtra("btn_extra", stg);
         startActivity(intent);
-
     }
 
-//    private File getImageFile() throws IOException {
-//        String timeStamp = new SimpleDateFormat("yyyy-MM-dd_HHmmss").format(new Date());
-//        String imageName = "jpg_" + timeStamp + "_";
-//        //File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
-//
-//        //File imageFile = File.createTempFile(imageName, ".jpg", storageDir);
-//        currentImagePath = imageFile.getAbsolutePath();
-//        return imageFile;
-//    }
 }
