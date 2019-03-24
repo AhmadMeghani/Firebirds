@@ -3,6 +3,7 @@ package com.abcx.firebirds;
 import android.Manifest;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
@@ -21,6 +22,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.SurfaceHolder;
@@ -57,13 +59,21 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
         camLayout = findViewById(R.id.cameraLayout);
         btnCapture = findViewById(R.id.clickButton);
         btnDone = findViewById(R.id.done);
+        mProgressDialogue = new ProgressDialog(CameraActivity.this);
+        mProgressDialogue.setTitle("Getting Location");
+        mProgressDialogue.setMessage("Please wait while we get your location...");
+        mProgressDialogue.setCanceledOnTouchOutside(false);
+        mProgressDialogue.setCancelable(false);
         locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
         locationListener = new LocationListener() {
             @Override
             public void onLocationChanged(Location location) {
                 updateLocationInfo(location);
                 locationManager.removeUpdates(this);
+                Log.i("Log", location.toString());
                 if (pictureTaken == false) {
+                    mProgressDialogue.setTitle("Saving Image");
+                    mProgressDialogue.setMessage("Please wait while we save your image...");
                     map = UtilityFunctions.pasteWatermark(map, getIntent().getStringExtra("btn_extra"),
                             address, CameraActivity.this);
                     storePhoto(map, UtilityFunctions.getTimeStamp());
@@ -116,7 +126,26 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
         btnCapture.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                camera.takePicture(null, null, pictureCallback);
+                locationManager = (LocationManager) CameraActivity.this.getSystemService(Context.LOCATION_SERVICE);
+                if (!locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+                    new AlertDialog.Builder(CameraActivity.this)
+                            .setTitle("GPS Disabled!")  // GPS not found
+                            .setMessage("Enable GPS") // Want to enable?
+                            .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialogInterface, int i) {
+                                    CameraActivity.this.startActivity(new Intent(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS));
+                                }
+                            })
+                            .setNegativeButton("No", null)
+                            .show();
+                } else {
+                    camera.takePicture(null, null, pictureCallback);
+                    mProgressDialogue.show();
+                    btnCapture.setEnabled(false);
+                    btnCapture.setVisibility(View.GONE);
+                    btnDone.setEnabled(false);
+                    btnDone.setVisibility(View.GONE);
+                }
             }
         });
         pictureCallback = new Camera.PictureCallback() {
@@ -126,18 +155,14 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
                 map = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), null, true);
                 map = RotateBitmap(map, 90);
                 if (address != "") {
+                    mProgressDialogue.dismiss();
                     map = UtilityFunctions.pasteWatermark(map, getIntent().getStringExtra("btn_extra"),
                             address, CameraActivity.this);
                     storePhoto(map, UtilityFunctions.getTimeStamp());
                     pictureTaken = true;
                 } else {
                     //re check Location here
-                    mProgressDialogue = new ProgressDialog(CameraActivity.this);
-                    mProgressDialogue.setTitle("Uploading Image...");
-                    mProgressDialogue.setMessage("Please wait a moment while we upload your Image");
-                    mProgressDialogue.setCanceledOnTouchOutside(false);
-                    mProgressDialogue.setCancelable(false);
-                    mProgressDialogue.show();
+
                 }
                 //storePhoto(map, UtilityFunctions.getTimeStamp());
 
@@ -234,8 +259,6 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
         params.setPreviewFrameRate(20);
         params.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE);
         params.setFlashMode(Camera.Parameters.FLASH_MODE_OFF);
-        camera.setParameters(params);
-        camera.setDisplayOrientation(90);
         try{
             camera.setPreviewDisplay(surfaceHolder);
             camera.startPreview();
@@ -249,7 +272,8 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
                 size = sizes.get(i);
         }
         params.setPictureSize(size.width, size.height);
-
+        camera.setParameters(params);
+        camera.setDisplayOrientation(90);
     }
 
     @Override
