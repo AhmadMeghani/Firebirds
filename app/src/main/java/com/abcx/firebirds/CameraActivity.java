@@ -9,6 +9,7 @@ import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
+import android.graphics.RectF;
 import android.hardware.Camera;
 import android.location.Address;
 import android.location.Criteria;
@@ -160,9 +161,8 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
             public void onPictureTaken(byte[] data, Camera camera) {
                 CameraActivity.this.camera.stopPreview();
                 bitmap = BitmapFactory.decodeByteArray(data, 0, data.length);
-                DisplayMetrics displayMetrics = new DisplayMetrics();
-                getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
-                map = Bitmap.createBitmap(bitmap, 0, 0, displayMetrics.widthPixels, displayMetrics.heightPixels, null, true);
+                Camera.Parameters para = camera.getParameters();
+                map = Bitmap.createBitmap(bitmap, 0, 0, para.getPictureSize().width, para.getPictureSize().height, null, true);
                 if (currentCameraId == Camera.CameraInfo.CAMERA_FACING_BACK) {
                     map = RotateBitmap(map, 90);
                 }else {
