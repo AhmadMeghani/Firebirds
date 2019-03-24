@@ -232,7 +232,6 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
         }
         Camera.Parameters params = camera.getParameters();
         params.setPreviewFrameRate(20);
-        //params.setPictureSize(640, 480);
         params.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE);
         params.setFlashMode(Camera.Parameters.FLASH_MODE_OFF);
         camera.setParameters(params);
