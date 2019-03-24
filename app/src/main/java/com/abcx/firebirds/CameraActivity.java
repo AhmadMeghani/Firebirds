@@ -14,7 +14,6 @@ import android.location.Geocoder;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
-import android.media.MediaScannerConnection;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
@@ -67,7 +66,7 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
         locationListener = new LocationListener() {
             @Override
             public void onLocationChanged(Location location) {
-                updateLocationInfo();
+                updateLocationInfo(location);
                 locationManager.removeUpdates(this);
             }
 
@@ -93,7 +92,7 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
             locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,0,0,locationListener);
             Location lastKnownLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
             if(lastKnownLocation != null){
-                updateLocationInfo();
+
             }
         }
 
@@ -201,9 +200,10 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
             locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 10, locationListener);
         }
     }
-    public void updateLocationInfo(){
-        double lat = 40.682997;
-        double log = -73.9416842;
+
+    public void updateLocationInfo(Location location) {
+        double lat = location.getLatitude();
+        double log = location.getLongitude();
 
         Geocoder geocoder = new Geocoder(this, Locale.getDefault());
 
@@ -212,20 +212,8 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
             if (listAddresses != null && listAddresses.size() > 0){
                 address="";
 
-                if (listAddresses.get(0).getFeatureName() != null ){
-                    address+= listAddresses.get(0).getFeatureName() + ", ";
-                }
-
-                if (listAddresses.get(0).getLocality() != null ){
-                    address+= listAddresses.get(0).getLocality() + ",";
-                }
-
-                if (listAddresses.get(0).getAdminArea() != null ){
-                    address+= listAddresses.get(0).getAdminArea() + ", ";
-                }
-
-                if (listAddresses.get(0).getCountryName() != null ){
-                    address+= listAddresses.get(0).getCountryName();
+                if (listAddresses.get(0).getAddressLine(0) != null) {
+                    address += listAddresses.get(0).getAddressLine(0);
                 }
 
                 Log.d("address", "updateLocationInfo: "+address);
@@ -254,11 +242,11 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
         RubberStampConfig config = new RubberStampConfig.RubberStampConfigBuilder()
                 .base(bitmap)
                 .rubberStamp(watermarkText)
-                .rubberStampPosition(RubberStampPosition.BOTTOM_CENTER)
+                .rubberStampPosition(RubberStampPosition.BOTTOM_LEFT)
                 .alpha(255)
                 .textColor(Color.WHITE)
                 .textShadow(1.0f, 5, 5, Color.BLACK)
-                .textSize(20)
+                .textSize(10)
                 .build();
 
         RubberStamp rubberStamp = new RubberStamp(this);
