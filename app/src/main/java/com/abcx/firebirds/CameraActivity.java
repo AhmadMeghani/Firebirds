@@ -9,10 +9,8 @@ import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
-import android.graphics.RectF;
 import android.hardware.Camera;
 import android.location.Address;
-import android.location.Criteria;
 import android.location.Geocoder;
 import android.location.Location;
 import android.location.LocationListener;
@@ -27,7 +25,6 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
-import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -53,12 +50,11 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
     private Camera.PictureCallback pictureCallback;
     private Camera.ShutterCallback shutterCallback;
     private Bitmap bitmap, map;
-    private Boolean pictureTaken = false;
     private String address = "";
     private int currentCameraId;
     LocationManager locationManager;
     LocationListener locationListener;
-    private static final int REQUEST_CAMERA_PERMISSION = 200, REQUEST_FINE_LOCATION = 300, REQUEST_WRITE_PERMISSION = 400;
+    private static final int REQUEST_FINE_LOCATION = 100;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -140,7 +136,7 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
                 if (!locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
                     new AlertDialog.Builder(CameraActivity.this)
                             .setTitle("GPS Disabled!")
-                            .setMessage("Enable GPS?")
+                            .setMessage("Do you want to Enable GPS?")
                             .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                                 public void onClick(DialogInterface dialogInterface, int i) {
                                     CameraActivity.this.startActivity(new Intent(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS));
@@ -161,28 +157,32 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
             public void onPictureTaken(byte[] data, Camera camera) {
                 CameraActivity.this.camera.stopPreview();
                 bitmap = BitmapFactory.decodeByteArray(data, 0, data.length);
-                Camera.Parameters para = camera.getParameters();
-                map = Bitmap.createBitmap(bitmap, 0, 0, para.getPictureSize().width, para.getPictureSize().height, null, true);
+                map = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), null, true);
                 if (currentCameraId == Camera.CameraInfo.CAMERA_FACING_BACK) {
                     map = RotateBitmap(map, 90);
                 }else {
                     if (currentCameraId == Camera.CameraInfo.CAMERA_FACING_FRONT) {
-                    map = RotateBitmap(map, -90);
+                        map = RotateBitmap(map, -90);
+                    }
                 }
-
+                if (address != ""){
+                    mProgressDialogue.setTitle("Saving Image");
+                    Log.i("Tag", "Saving");
+                    mProgressDialogue.setMessage("Please wait while we save your image...");
+                    mProgressDialogue.show();
+                    map = UtilityFunctions.pasteWatermark(map, getIntent().getStringExtra("btn_extra"),
+                            address, CameraActivity.this);
+                    storePhoto(map, UtilityFunctions.getTimeStamp());
+                }else{
+                    locationUpdater();
+                    mProgressDialogue.setTitle("Saving Image");
+                    Log.i("Tag", "Saving");
+                    mProgressDialogue.setMessage("Please wait while we save your image...");
+                    mProgressDialogue.show();
+                    map = UtilityFunctions.pasteWatermark(map, getIntent().getStringExtra("btn_extra"),
+                            address, CameraActivity.this);
+                    storePhoto(map, UtilityFunctions.getTimeStamp());
                 }
-//                while (address == "") {
-//                    Log.i("Loc", "Locating");
-//                    locationUpdater();
-//                }
-                mProgressDialogue.hide();
-                mProgressDialogue.setTitle("Saving Image");
-                Log.i("Tag", "Saving");
-                mProgressDialogue.setMessage("Please wait while we save your image...");
-                mProgressDialogue.show();
-                map = UtilityFunctions.pasteWatermark(map, getIntent().getStringExtra("btn_extra"),
-                        address, CameraActivity.this);
-                storePhoto(map, UtilityFunctions.getTimeStamp());
                 mProgressDialogue.dismiss();
             }
 
@@ -199,12 +199,9 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
     private void locationUpdater() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) !=
                 PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION,
-                            Manifest.permission.CAMERA,
-                            Manifest.permission.WRITE_EXTERNAL_STORAGE},
-                    1);
-        } else {
-            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 1000, locationListener);
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, REQUEST_FINE_LOCATION);
+        }else {
+            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationListener);
             Location lastKnownLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
             if (lastKnownLocation != null) {
                 updateLocationInfo(lastKnownLocation);
@@ -214,51 +211,18 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        if (requestCode == 1) {
+        if (requestCode == REQUEST_FINE_LOCATION) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                startListening();
-            }else{
-                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
-                        REQUEST_FINE_LOCATION);
-            }
-            if (grantResults.length > 1 && grantResults[1] == PackageManager.PERMISSION_GRANTED) {
-
-            }else{
-                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA},
-                        REQUEST_CAMERA_PERMISSION);
-            }
-            if (grantResults.length > 2 && grantResults[2] == PackageManager.PERMISSION_GRANTED) {
-
-            }else{
-                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
-                        REQUEST_WRITE_PERMISSION);
-            }
-        }
-        else if (requestCode == REQUEST_FINE_LOCATION){
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                startListening();
-            }else{
-                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
-                        REQUEST_FINE_LOCATION);
-            }
-        }
-        else if (requestCode == REQUEST_CAMERA_PERMISSION){
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                startListening();
-            }else{
-                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA},
-                        REQUEST_CAMERA_PERMISSION);
-            }
-        }
-        else if (requestCode == REQUEST_WRITE_PERMISSION){
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                startListening();
-            }else{
-                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
-                        REQUEST_WRITE_PERMISSION);
+                locationUpdater();
+            } else {
+                if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) !=
+                        PackageManager.PERMISSION_GRANTED) {
+                    ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, REQUEST_FINE_LOCATION);
+                }
             }
         }
     }
+
     private Bitmap RotateBitmap(Bitmap source, float angle)
     {
         Matrix matrix = new Matrix();
@@ -335,7 +299,7 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
 
     public void startListening(){
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 10, locationListener);
+            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationListener);
         }
     }
 
