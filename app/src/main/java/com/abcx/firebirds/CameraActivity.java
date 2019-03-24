@@ -4,6 +4,8 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
 import android.hardware.Camera;
+import android.media.MediaScannerConnection;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.support.annotation.Nullable;
@@ -58,7 +60,7 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
 
                 // To Do Watermark code here use map variable
 
-                storePhoto(map, "rtm");
+                storePhoto(map, "rtm1");
                 CameraActivity.this.camera.startPreview();
             }
         };
@@ -71,12 +73,20 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
         return Bitmap.createBitmap(source, 0, 0, source.getWidth(), source.getHeight(), matrix, true);
     }
     private void storePhoto(Bitmap map, String path) {
-        File file = new File(Environment.getExternalStorageDirectory() + "/DCIM/Camera/" + "photo" + path + ".jpg");
+        File file = new File(Environment.getExternalStorageDirectory() + "/DCIM/Firebird");
+        if (!file.isDirectory()){
+            file.mkdir();
+        }
         try{
-            FileOutputStream outputStream = new FileOutputStream(file);
+            FileOutputStream outputStream = new FileOutputStream(file + "/photo" + path + ".jpeg");
             map.compress(Bitmap.CompressFormat.JPEG, 100, outputStream);
             outputStream.flush();
             outputStream.close();
+            MediaScannerConnection.scanFile(this,new String[] { file.getAbsolutePath() + "/photo" + path + ".jpeg" }, null,new MediaScannerConnection.OnScanCompletedListener() {
+                public void onScanCompleted(String path, Uri uri) {
+
+                }
+            });
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         } catch (IOException e) {

@@ -51,11 +51,11 @@ public class MainActivity extends AppCompatActivity {
         if (cameraIntent.resolveActivity(getPackageManager()) != null) {
             File imageFile = null;
 
-            try {
-                imageFile = getImageFile();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+//            try {
+//                //imageFile = getImageFile();
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//            }
 
             if (imageFile != null) {
                 Uri imageUri = FileProvider.getUriForFile(this, "com.example.android.fileprovider", imageFile);
@@ -75,13 +75,13 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    private File getImageFile() throws IOException {
-        String timeStamp = new SimpleDateFormat("yyyy-MM-dd_HHmmss").format(new Date());
-        String imageName = "jpg_" + timeStamp + "_";
-        File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
-
-        File imageFile = File.createTempFile(imageName, ".jpg", storageDir);
-        currentImagePath = imageFile.getAbsolutePath();
-        return imageFile;
-    }
+//    private File getImageFile() throws IOException {
+//        String timeStamp = new SimpleDateFormat("yyyy-MM-dd_HHmmss").format(new Date());
+//        String imageName = "jpg_" + timeStamp + "_";
+//        //File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+//
+//        //File imageFile = File.createTempFile(imageName, ".jpg", storageDir);
+//        currentImagePath = imageFile.getAbsolutePath();
+//        return imageFile;
+//    }
 }
