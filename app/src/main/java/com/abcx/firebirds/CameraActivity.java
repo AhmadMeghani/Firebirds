@@ -15,6 +15,7 @@ import android.location.Geocoder;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.media.AudioManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
@@ -45,6 +46,7 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
     private SurfaceHolder surfaceHolder;
     private ProgressDialog mProgressDialogue;
     private Camera.PictureCallback pictureCallback;
+    private Camera.ShutterCallback shutterCallback;
     private Bitmap bitmap, map;
     private Boolean pictureTaken = false;
     private String address = "";
@@ -69,18 +71,7 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
             @Override
             public void onLocationChanged(Location location) {
                 updateLocationInfo(location);
-                locationManager.removeUpdates(this);
                 Log.i("Log", location.toString());
-                if (pictureTaken == false) {
-                    mProgressDialogue.setTitle("Saving Image");
-                    mProgressDialogue.setMessage("Please wait while we save your image...");
-                    map = UtilityFunctions.pasteWatermark(map, getIntent().getStringExtra("btn_extra"),
-                            address, CameraActivity.this);
-                    storePhoto(map, UtilityFunctions.getTimeStamp());
-                    mProgressDialogue.dismiss();
-                    CameraActivity.this.camera.startPreview();
-                    pictureTaken = true;
-                }
             }
 
             @Override
@@ -106,10 +97,10 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
                             Manifest.permission.WRITE_EXTERNAL_STORAGE},
                     1);
         } else {
-            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationListener);
+            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 10, 0, locationListener);
             Location lastKnownLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
             if (lastKnownLocation != null) {
-
+                updateLocationInfo(lastKnownLocation);
             }
         }
 
@@ -129,8 +120,8 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
                 locationManager = (LocationManager) CameraActivity.this.getSystemService(Context.LOCATION_SERVICE);
                 if (!locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
                     new AlertDialog.Builder(CameraActivity.this)
-                            .setTitle("GPS Disabled!")  // GPS not found
-                            .setMessage("Enable GPS") // Want to enable?
+                            .setTitle("GPS Disabled!")
+                            .setMessage("Enable GPS?")
                             .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                                 public void onClick(DialogInterface dialogInterface, int i) {
                                     CameraActivity.this.startActivity(new Intent(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS));
@@ -139,35 +130,40 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
                             .setNegativeButton("No", null)
                             .show();
                 } else {
-                    camera.takePicture(null, null, pictureCallback);
+                    camera.takePicture(shutterCallback, null, pictureCallback);
                     mProgressDialogue.show();
                     btnCapture.setEnabled(false);
-                    btnCapture.setVisibility(View.GONE);
                     btnDone.setEnabled(false);
-                    btnDone.setVisibility(View.GONE);
                 }
             }
         });
         pictureCallback = new Camera.PictureCallback() {
             @Override
             public void onPictureTaken(byte[] data, Camera camera) {
+                CameraActivity.this.camera.stopPreview();
                 bitmap = BitmapFactory.decodeByteArray(data, 0, data.length);
                 map = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), null, true);
                 map = RotateBitmap(map, 90);
-                if (address != "") {
-                    mProgressDialogue.dismiss();
-                    map = UtilityFunctions.pasteWatermark(map, getIntent().getStringExtra("btn_extra"),
-                            address, CameraActivity.this);
-                    storePhoto(map, UtilityFunctions.getTimeStamp());
-                    pictureTaken = true;
-                } else {
-                    //re check Location here
+                mProgressDialogue.show();
+                while (address == "") {
 
                 }
-                //storePhoto(map, UtilityFunctions.getTimeStamp());
+                mProgressDialogue.dismiss();
+                mProgressDialogue.setTitle("Saving Image");
+                mProgressDialogue.setMessage("Please wait while we save your image...");
+                mProgressDialogue.show();
+                map = UtilityFunctions.pasteWatermark(map, getIntent().getStringExtra("btn_extra"),
+                        address, CameraActivity.this);
+                storePhoto(map, UtilityFunctions.getTimeStamp());
+                mProgressDialogue.dismiss();
+            }
 
-
-                CameraActivity.this.camera.startPreview();
+        };
+        shutterCallback = new Camera.ShutterCallback() {
+            @Override
+            public void onShutter() {
+                AudioManager mgr = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+                mgr.playSoundEffect(AudioManager.FLAG_PLAY_SOUND);
             }
         };
     }
