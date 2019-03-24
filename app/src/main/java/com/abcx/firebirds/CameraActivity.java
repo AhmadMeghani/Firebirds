@@ -11,6 +11,7 @@ import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
 import android.hardware.Camera;
 import android.location.Address;
+import android.location.Criteria;
 import android.location.Geocoder;
 import android.location.Location;
 import android.location.LocationListener;
@@ -29,8 +30,6 @@ import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
-import android.view.Window;
-import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.ImageButton;
 
@@ -44,7 +43,7 @@ import java.util.Locale;
 public class CameraActivity extends AppCompatActivity implements SurfaceHolder.Callback {
 
     private Button btnCapture;
-    private ImageButton btnDone;
+    private ImageButton btnDone, btnCamSwitch;
     private SurfaceView camLayout;
     private Camera camera;
     private SurfaceHolder surfaceHolder;
@@ -54,19 +53,19 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
     private Bitmap bitmap, map;
     private Boolean pictureTaken = false;
     private String address = "";
+    private int currentCameraId;
     LocationManager locationManager;
     LocationListener locationListener;
     private static final int REQUEST_CAMERA_PERMISSION = 200, REQUEST_FINE_LOCATION = 300, REQUEST_WRITE_PERMISSION = 400;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
-        requestWindowFeature(Window.FEATURE_NO_TITLE);
-        this.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_camera);
         camLayout = findViewById(R.id.cameraLayout);
         btnCapture = findViewById(R.id.clickButton);
         btnDone = findViewById(R.id.done);
+        btnCamSwitch = findViewById(R.id.camSwitch);
         mProgressDialogue = new ProgressDialog(CameraActivity.this);
         mProgressDialogue.setTitle("Getting Location");
         mProgressDialogue.setMessage("Please wait while we get your location...");
@@ -79,7 +78,6 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
                 updateLocationInfo(location);
                 locationManager.removeUpdates(locationListener);
                 Log.i("Log", location.toString());
-                locationManager.removeUpdates(locationListener);
             }
 
             @Override
@@ -98,26 +96,36 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
             }
         };
 
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) !=
-                PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION,
-                            Manifest.permission.CAMERA,
-                            Manifest.permission.WRITE_EXTERNAL_STORAGE},
-                    1);
-        } else {
-            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 2000, 1000, locationListener);
-            Location lastKnownLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-            if (lastKnownLocation != null) {
-                updateLocationInfo(lastKnownLocation);
-
-            }
-        }
-
-
+        locationUpdater();
         btnDone.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 finish();
+            }
+        });
+        btnCamSwitch.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (currentCameraId == Camera.CameraInfo.CAMERA_FACING_BACK){
+                    currentCameraId = Camera.CameraInfo.CAMERA_FACING_FRONT;
+                }else{
+                    currentCameraId = Camera.CameraInfo.CAMERA_FACING_BACK;
+                }
+                camera.stopPreview();
+                camera.release();
+                camera = Camera.open(currentCameraId);
+                try {
+                    camera.setPreviewDisplay(surfaceHolder);
+                    camera.startPreview();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                Camera.Parameters params = camera.getParameters();
+                params.setPreviewFrameRate(20);
+                params.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE);
+                params.setFlashMode(Camera.Parameters.FLASH_MODE_OFF);
+                camera.setParameters(params);
+                camera.setDisplayOrientation(90);
             }
         });
         surfaceHolder = camLayout.getHolder();
@@ -153,12 +161,13 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
                 bitmap = BitmapFactory.decodeByteArray(data, 0, data.length);
                 map = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), null, true);
                 map = RotateBitmap(map, 90);
-                mProgressDialogue.show();
                 while (address == "") {
-
+                    Log.i("Loc", "Locating");
+                    locationUpdater();
                 }
-                mProgressDialogue.dismiss();
+                mProgressDialogue.hide();
                 mProgressDialogue.setTitle("Saving Image");
+                Log.i("Tag", "Saving");
                 mProgressDialogue.setMessage("Please wait while we save your image...");
                 mProgressDialogue.show();
                 map = UtilityFunctions.pasteWatermark(map, getIntent().getStringExtra("btn_extra"),
@@ -175,6 +184,38 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
                 mgr.playSoundEffect(AudioManager.FLAG_PLAY_SOUND);
             }
         };
+    }
+
+    private int findFrontFacingCamera(int currentCamera) {
+        int cameraId = -1;
+        // Search for the front facing camera
+        int numberOfCameras = Camera.getNumberOfCameras();
+        for (int i = 0; i < numberOfCameras; i++) {
+            Camera.CameraInfo info = new Camera.CameraInfo();
+            Camera.getCameraInfo(i, info);
+            if (currentCamera != Camera.CameraInfo.CAMERA_FACING_FRONT) {
+
+                cameraId = i;
+                break;
+            }
+        }
+        return cameraId;
+    }
+
+    private void locationUpdater() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) !=
+                PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION,
+                            Manifest.permission.CAMERA,
+                            Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                    1);
+        } else {
+            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 1000, locationListener);
+            Location lastKnownLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+            if (lastKnownLocation != null) {
+                updateLocationInfo(lastKnownLocation);
+            }
+        }
     }
 
     @Override
@@ -257,9 +298,14 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
     public void surfaceCreated(SurfaceHolder holder) {
         try{
             camera = Camera.open();
+            currentCameraId = Camera.CameraInfo.CAMERA_FACING_BACK;
         }catch (Exception e){
             e.printStackTrace();
         }
+        cameraParas();
+    }
+
+    private void cameraParas(){
         Camera.Parameters params = camera.getParameters();
         params.setPreviewFrameRate(20);
         params.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE);
@@ -280,7 +326,6 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
         camera.setParameters(params);
         camera.setDisplayOrientation(90);
     }
-
     @Override
     public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
 
