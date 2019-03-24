@@ -20,6 +20,7 @@ public class MainActivity extends AppCompatActivity {
 
     private static final int IMAGE_REQUEST = 1;
     String currentImagePath = null;
+    Button n, x, y;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -27,15 +28,15 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        Button n = (Button) findViewById(R.id.button1);
+        n = findViewById(R.id.button1);
         Typeface typeface = Typeface.createFromAsset(getAssets(), "HVD-Fonts-BrandonGrotesque-Regular.otf");
         n.setTypeface(typeface);
 
-        Button x = (Button) findViewById(R.id.button);
+        x = findViewById(R.id.button);
 
         x.setTypeface(typeface);
 
-        Button y = (Button) findViewById(R.id.button3);
+        y = findViewById(R.id.button3);
         y.setTypeface(typeface);
     }
 
@@ -69,7 +70,9 @@ public class MainActivity extends AppCompatActivity {
     public void xxx(View view) {
         Intent intent = new Intent(MainActivity.this, imageView.class);
         intent.putExtra("image_path", currentImagePath);
+        intent.putExtra("btn_text", x.getText().toString());
         startActivity(intent);
+
     }
 
     private File getImageFile() throws IOException {
