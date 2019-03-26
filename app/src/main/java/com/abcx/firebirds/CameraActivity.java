@@ -10,6 +10,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
 import android.graphics.PixelFormat;
+import android.graphics.drawable.BitmapDrawable;
 import android.hardware.Camera;
 import android.location.Address;
 import android.location.Geocoder;
@@ -26,6 +27,7 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -161,7 +163,7 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
                     mProgressDialogue.show();
                     camera.takePicture(shutterCallback, null, pictureCallback);
                     btnCapture.setEnabled(false);
-                    //btnDone.setEnabled(false);
+                    btnDone.setEnabled(false);
                     btnCamSwitch.setEnabled(false);
                 }
             }
@@ -177,6 +179,7 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
                 }else {
                     if (currentCameraId == Camera.CameraInfo.CAMERA_FACING_FRONT) {
                         map = RotateBitmap(map, -90);
+                        map = flip(new BitmapDrawable(map)).getBitmap();
                     }
                 }
                 if (address != ""){
@@ -312,6 +315,15 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
         Matrix matrix = new Matrix();
         matrix.postRotate(angle);
         return Bitmap.createBitmap(source, 0, 0, source.getWidth(), source.getHeight(), matrix, true);
+    }
+
+    private BitmapDrawable flip(BitmapDrawable d)
+    {
+        Matrix m = new Matrix();
+        m.preScale(-1, 1);
+        Bitmap src = d.getBitmap();
+        Bitmap dst = Bitmap.createBitmap(src, 0, 0, src.getWidth(), src.getHeight(), m, false);
+        return new BitmapDrawable(dst);
     }
 
     private void storePhoto(Bitmap map, String path) {
