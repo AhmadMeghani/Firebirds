@@ -46,14 +46,15 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
     private SurfaceView camLayout;
     private Camera camera;
     private SurfaceHolder surfaceHolder;
-    private ProgressDialog mProgressDialogue;
+    private ProgressDialog mProgressDialogue, mImageSaving;
     private Camera.PictureCallback pictureCallback;
     private Camera.ShutterCallback shutterCallback;
     private Bitmap bitmap, map;
     private String address = "";
     private int currentCameraId;
     LocationManager locationManager;
-    LocationListener locationListener;
+    LocationListener locationListenerGPS, locationListenerNP;
+    private Boolean flag = true;
     private static final int REQUEST_FINE_LOCATION = 100;
 
     @Override
@@ -69,13 +70,41 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
         mProgressDialogue.setMessage("Please wait while we get your location...");
         mProgressDialogue.setCanceledOnTouchOutside(false);
         mProgressDialogue.setCancelable(false);
+        mImageSaving = new ProgressDialog(CameraActivity.this);
+        mImageSaving.setTitle("Saving Image");
+        mImageSaving.setMessage("Please wait while we save your image...");
+        mImageSaving.setCanceledOnTouchOutside(false);
+        mImageSaving.setCancelable(false);
         locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
-        locationListener = new LocationListener() {
+        locationListenerGPS = new LocationListener() {
             @Override
             public void onLocationChanged(Location location) {
                 updateLocationInfo(location);
-                locationManager.removeUpdates(locationListener);
-                Log.i("Log", location.toString());
+                locationManager.removeUpdates(locationListenerGPS);
+                Log.i("LogGPS", location.toString());
+            }
+
+            @Override
+            public void onStatusChanged(String provider, int status, Bundle extras) {
+
+            }
+
+            @Override
+            public void onProviderEnabled(String provider) {
+
+            }
+
+            @Override
+            public void onProviderDisabled(String provider) {
+
+            }
+        };
+        locationListenerNP = new LocationListener() {
+            @Override
+            public void onLocationChanged(Location location) {
+                updateLocationInfo(location);
+                locationManager.removeUpdates(locationListenerNP);
+                Log.i("LogNP", location.toString());
             }
 
             @Override
@@ -118,11 +147,6 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-                Camera.Parameters params = camera.getParameters();
-                params.setPreviewFrameRate(20);
-                params.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE);
-                params.setFlashMode(Camera.Parameters.FLASH_MODE_OFF);
-                camera.setParameters(params);
                 camera.setDisplayOrientation(90);
             }
         });
@@ -149,6 +173,7 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
                     mProgressDialogue.show();
                     btnCapture.setEnabled(false);
                     btnDone.setEnabled(false);
+                    btnCamSwitch.setEnabled(false);
                 }
             }
         });
@@ -166,24 +191,82 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
                     }
                 }
                 if (address != ""){
-                    mProgressDialogue.setTitle("Saving Image");
+                    mProgressDialogue.dismiss();
+                    mProgressDialogue = null;
+                    mImageSaving.show();
                     Log.i("Tag", "Saving");
-                    mProgressDialogue.setMessage("Please wait while we save your image...");
-                    mProgressDialogue.show();
                     map = UtilityFunctions.pasteWatermark(map, getIntent().getStringExtra("btn_extra"),
                             address, CameraActivity.this);
                     storePhoto(map, UtilityFunctions.getTimeStamp());
+                    mImageSaving.dismiss();
                 }else{
-                    locationUpdater();
-                    mProgressDialogue.setTitle("Saving Image");
-                    Log.i("Tag", "Saving");
-                    mProgressDialogue.setMessage("Please wait while we save your image...");
-                    mProgressDialogue.show();
-                    map = UtilityFunctions.pasteWatermark(map, getIntent().getStringExtra("btn_extra"),
-                            address, CameraActivity.this);
-                    storePhoto(map, UtilityFunctions.getTimeStamp());
+                    locationListenerGPS = new LocationListener() {
+                        @Override
+                        public void onLocationChanged(Location location) {
+                            updateLocationInfo(location);
+                            if (address != "" && flag == true) {
+                                flag = false;
+                                mProgressDialogue.dismiss();
+                                mProgressDialogue = null;
+                                locationManager.removeUpdates(locationListenerGPS);
+                                mImageSaving.show();
+                                Log.i("Tag", "Saving");
+                                Log.i("LogGPS", location.toString());
+                                map = UtilityFunctions.pasteWatermark(map, getIntent().getStringExtra("btn_extra"),
+                                        address, CameraActivity.this);
+                                storePhoto(map, UtilityFunctions.getTimeStamp());
+                                mImageSaving.dismiss();
+                            }
+                        }
+                        @Override
+                        public void onStatusChanged(String provider, int status, Bundle extras) {
+
+                        }
+
+                        @Override
+                        public void onProviderEnabled(String provider) {
+
+                        }
+
+                        @Override
+                        public void onProviderDisabled(String provider) {
+
+                        }
+                    };
+                    locationListenerNP = new LocationListener() {
+                        @Override
+                        public void onLocationChanged(Location location) {
+                            updateLocationInfo(location);
+                            if (address != "" && flag == true) {
+                                flag = false;
+                                mProgressDialogue.dismiss();
+                                mProgressDialogue = null;
+                                locationManager.removeUpdates(locationListenerNP);
+                                mImageSaving.show();
+                                Log.i("Tag", "Saving");
+                                Log.i("LogNP", location.toString());
+                                map = UtilityFunctions.pasteWatermark(map, getIntent().getStringExtra("btn_extra"),
+                                        address, CameraActivity.this);
+                                storePhoto(map, UtilityFunctions.getTimeStamp());
+                                mImageSaving.dismiss();
+                            }
+                        }
+                        @Override
+                        public void onStatusChanged(String provider, int status, Bundle extras) {
+
+                        }
+
+                        @Override
+                        public void onProviderEnabled(String provider) {
+
+                        }
+
+                        @Override
+                        public void onProviderDisabled(String provider) {
+
+                        }
+                    };
                 }
-                mProgressDialogue.dismiss();
             }
 
         };
@@ -201,10 +284,19 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
                 PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, REQUEST_FINE_LOCATION);
         }else {
-            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationListener);
-            Location lastKnownLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-            if (lastKnownLocation != null) {
-                updateLocationInfo(lastKnownLocation);
+            if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+                locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1, 1, locationListenerGPS);
+                Location lastKnownLocation = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+                if (lastKnownLocation != null) {
+                    updateLocationInfo(lastKnownLocation);
+                }
+            }
+            if (locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
+                locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 1, 1, locationListenerNP);
+                Location lastKnownLocation = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+                if (lastKnownLocation != null) {
+                    updateLocationInfo(lastKnownLocation);
+                }
             }
         }
     }
@@ -299,7 +391,8 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
 
     public void startListening(){
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationListener);
+            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1, 1, locationListenerGPS);
+            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1, 1, locationListenerNP);
         }
     }
 
