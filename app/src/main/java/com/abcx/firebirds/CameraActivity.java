@@ -29,8 +29,11 @@ import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.ImageButton;
+import android.widget.Toast;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -59,6 +62,8 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
+        requestWindowFeature(Window.FEATURE_NO_TITLE);
+        this.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_camera);
         camLayout = findViewById(R.id.cameraLayout);
@@ -164,10 +169,10 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
                             .setNegativeButton("No", null)
                             .show();
                 } else {
-                    camera.takePicture(shutterCallback, null, pictureCallback);
                     mProgressDialogue.show();
+                    camera.takePicture(shutterCallback, null, pictureCallback);
                     btnCapture.setEnabled(false);
-                    btnDone.setEnabled(false);
+                    //btnDone.setEnabled(false);
                     btnCamSwitch.setEnabled(false);
                 }
             }
@@ -314,15 +319,16 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
             file.mkdir();
         }
         try {
-            FileOutputStream outputStream = new FileOutputStream(file + "/photo" + path + ".jpeg");
+            FileOutputStream outputStream = new FileOutputStream(file + "/photo-" + path + ".jpeg");
             map.compress(Bitmap.CompressFormat.JPEG, 100, outputStream);
             outputStream.flush();
             outputStream.close();
             Intent mediaScanIntent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
-            File f = new File(file + "/photo" + path + ".jpeg");
+            File f = new File(file + "/photo-" + path + ".jpeg");
             Uri contentUri = Uri.fromFile(f);
             mediaScanIntent.setData(contentUri);
             this.sendBroadcast(mediaScanIntent);
+            Toast.makeText(CameraActivity.this, "Image Saved!", Toast.LENGTH_SHORT).show();
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         } catch (IOException e) {
@@ -379,12 +385,6 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
         camera = null;
     }
 
-    public void startListening(){
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1, 1, locationListenerGPS);
-            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1, 1, locationListenerNP);
-        }
-    }
 
     public void updateLocationInfo(Location location) {
         double lat = location.getLatitude();

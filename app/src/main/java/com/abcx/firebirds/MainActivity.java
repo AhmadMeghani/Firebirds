@@ -17,6 +17,7 @@ public class MainActivity extends AppCompatActivity {
     private static final int REQUEST_CAMERA_PERMISSION = 100, REQUEST_PERMISSIONS = 200, REQUEST_WRITE_PERMISSION = 300, REQUEST_FINE_LOCATION = 400;
     Button btnWoodFired, btnFirst, btnSecond;
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
