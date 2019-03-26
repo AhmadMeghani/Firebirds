@@ -14,12 +14,12 @@ import java.util.Calendar;
 
 public class UtilityFunctions {
     public static Bitmap pasteWatermark(Bitmap bitmap, String buttonText, String address, Context context) {
-        String watermarkText = "(" + buttonText + ") - " + getTime() + " - " + address;
+        StringBuilder watermarkText = new StringBuilder("(" + buttonText + ") - " + getTime() + " - " + address);
         Log.d("water", "watermark: " + watermarkText);
 
         RubberStampConfig config = new RubberStampConfig.RubberStampConfigBuilder()
                 .base(bitmap)
-                .rubberStamp(watermarkText)
+                .rubberStamp(watermarkText.toString())
                 .rubberStampPosition(RubberStampPosition.BOTTOM_LEFT)
                 .alpha(255)
                 .textColor(Color.rgb(239, 236, 213))
@@ -47,4 +47,6 @@ public class UtilityFunctions {
         Log.d("date", "watermark: " + formattedDate);
         return formattedDate;
     }
+
+
 }

@@ -1,3 +1,9 @@
 <resources>
     <string name="app_name">Firebirds</string>
+    <string name="camSwitch">camera switch icon resourse</string>
+    <string name="doneBtn">close button to return to main screen</string>
+    <string name="appLogo">Firebird Logo</string>
+    <string name="second">Second</string>
+    <string name="first">First</string>
+    <string name="wood_fired_grill">Wood Fired Grill</string>
 </resources>

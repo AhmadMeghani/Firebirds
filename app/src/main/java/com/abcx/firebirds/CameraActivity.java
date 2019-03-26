@@ -27,7 +27,6 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
-import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -182,7 +181,7 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
                         map = flip(new BitmapDrawable(map)).getBitmap();
                     }
                 }
-                if (address != ""){
+                if (!address.equals("")) {
                     Log.i("Tag", "Saving");
                     map = UtilityFunctions.pasteWatermark(map, getIntent().getStringExtra("btn_extra"),
                             address, CameraActivity.this);
@@ -207,7 +206,7 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
             @Override
             public void onLocationChanged(Location location) {
                 updateLocationInfo(location);
-                if (address != "" && flag == true) {
+                if (!address.equals("") && flag) {
                     flag = false;
                     locationManager.removeUpdates(locationListenerGPS2);
                     Log.i("Tag", "Saving");
@@ -231,7 +230,7 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
             @Override
             public void onLocationChanged(Location location) {
                 updateLocationInfo(location);
-                if (!address.equals("") && flag == true) {
+                if (!address.equals("") && flag) {
                     flag = false;
                     locationManager.removeUpdates(locationListenerNP2);
                     Log.i("Tag", "Saving");
@@ -262,6 +261,8 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
                 Location lastKnownLocation = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
                 if (lastKnownLocation != null) {
                     updateLocationInfo(lastKnownLocation);
+                    locationManager.removeUpdates(locationListenerGPS);
+
                 }
             }
             if (locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
@@ -269,6 +270,8 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
                 Location lastKnownLocation = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
                 if (lastKnownLocation != null) {
                     updateLocationInfo(lastKnownLocation);
+                    locationManager.removeUpdates(locationListenerNP);
+
                 }
             }
         }
@@ -284,6 +287,8 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
                 Location lastKnownLocation = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
                 if (lastKnownLocation != null) {
                     updateLocationInfo(lastKnownLocation);
+                    locationManager.removeUpdates(locationListenerGPS2);
+
                 }
             }
             if (locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
@@ -291,6 +296,8 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
                 Location lastKnownLocation = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
                 if (lastKnownLocation != null) {
                     updateLocationInfo(lastKnownLocation);
+                    locationManager.removeUpdates(locationListenerNP2);
+
                 }
             }
         }
