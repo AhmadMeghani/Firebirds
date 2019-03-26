@@ -9,6 +9,7 @@ import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
+import android.graphics.PixelFormat;
 import android.hardware.Camera;
 import android.location.Address;
 import android.location.Geocoder;
@@ -55,8 +56,8 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
     private Bitmap bitmap, map;
     private String address = "";
     private int currentCameraId;
-    LocationManager locationManager;
-    LocationListener locationListenerGPS, locationListenerNP;
+    private LocationManager locationManager;
+    private LocationListener locationListenerGPS, locationListenerNP, locationListenerGPS2, locationListenerNP2;
     private Boolean flag = true;
     private static final int REQUEST_FINE_LOCATION = 100;
 
@@ -85,19 +86,13 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
             }
 
             @Override
-            public void onStatusChanged(String provider, int status, Bundle extras) {
-
-            }
+            public void onStatusChanged(String provider, int status, Bundle extras) { }
 
             @Override
-            public void onProviderEnabled(String provider) {
-
-            }
+            public void onProviderEnabled(String provider) { }
 
             @Override
-            public void onProviderDisabled(String provider) {
-
-            }
+            public void onProviderDisabled(String provider) { }
         };
         locationListenerNP = new LocationListener() {
             @Override
@@ -108,21 +103,15 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
             }
 
             @Override
-            public void onStatusChanged(String provider, int status, Bundle extras) {
-
-            }
+            public void onStatusChanged(String provider, int status, Bundle extras) { }
 
             @Override
-            public void onProviderEnabled(String provider) {
-
-            }
+            public void onProviderEnabled(String provider) { }
 
             @Override
-            public void onProviderDisabled(String provider) {
-
-            }
+            public void onProviderDisabled(String provider) { }
         };
-
+        listeners();
         locationUpdater();
         btnDone.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -197,66 +186,7 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
                     storePhoto(map, UtilityFunctions.getTimeStamp());
                     mProgressDialogue.dismiss();
                 }else{
-                    locationListenerGPS = new LocationListener() {
-                        @Override
-                        public void onLocationChanged(Location location) {
-                            updateLocationInfo(location);
-                            if (address != "" && flag == true) {
-                                flag = false;
-                                locationManager.removeUpdates(locationListenerGPS);
-                                Log.i("Tag", "Saving");
-                                Log.i("LogGPS", location.toString());
-                                map = UtilityFunctions.pasteWatermark(map, getIntent().getStringExtra("btn_extra"),
-                                        address, CameraActivity.this);
-                                storePhoto(map, UtilityFunctions.getTimeStamp());
-                                mProgressDialogue.dismiss();
-                            }
-                        }
-                        @Override
-                        public void onStatusChanged(String provider, int status, Bundle extras) {
-
-                        }
-
-                        @Override
-                        public void onProviderEnabled(String provider) {
-
-                        }
-
-                        @Override
-                        public void onProviderDisabled(String provider) {
-
-                        }
-                    };
-                    locationListenerNP = new LocationListener() {
-                        @Override
-                        public void onLocationChanged(Location location) {
-                            updateLocationInfo(location);
-                            if (address != "" && flag == true) {
-                                flag = false;
-                                locationManager.removeUpdates(locationListenerNP);
-                                Log.i("Tag", "Saving");
-                                Log.i("LogNP", location.toString());
-                                map = UtilityFunctions.pasteWatermark(map, getIntent().getStringExtra("btn_extra"),
-                                        address, CameraActivity.this);
-                                storePhoto(map, UtilityFunctions.getTimeStamp());
-                                mProgressDialogue.dismiss();
-                            }
-                        }
-                        @Override
-                        public void onStatusChanged(String provider, int status, Bundle extras) {
-
-                        }
-
-                        @Override
-                        public void onProviderEnabled(String provider) {
-
-                        }
-
-                        @Override
-                        public void onProviderDisabled(String provider) {
-
-                        }
-                    };
+                    locationUpdater2();
                 }
             }
 
@@ -269,7 +199,56 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
             }
         };
     }
+    private void listeners(){
+        locationListenerGPS2 = new LocationListener() {
+            @Override
+            public void onLocationChanged(Location location) {
+                updateLocationInfo(location);
+                if (address != "" && flag == true) {
+                    flag = false;
+                    locationManager.removeUpdates(locationListenerGPS2);
+                    Log.i("Tag", "Saving");
+                    Log.i("LogGPS2", location.toString());
+                    map = UtilityFunctions.pasteWatermark(map, getIntent().getStringExtra("btn_extra"),
+                            address, CameraActivity.this);
+                    storePhoto(map, UtilityFunctions.getTimeStamp());
+                    mProgressDialogue.dismiss();
+                }
+            }
+            @Override
+            public void onStatusChanged(String provider, int status, Bundle extras) { }
 
+            @Override
+            public void onProviderEnabled(String provider) { }
+
+            @Override
+            public void onProviderDisabled(String provider) { }
+        };
+        locationListenerNP2 = new LocationListener() {
+            @Override
+            public void onLocationChanged(Location location) {
+                updateLocationInfo(location);
+                if (!address.equals("") && flag == true) {
+                    flag = false;
+                    locationManager.removeUpdates(locationListenerNP2);
+                    Log.i("Tag", "Saving");
+                    Log.i("LogNP2", location.toString());
+                    map = UtilityFunctions.pasteWatermark(map, getIntent().getStringExtra("btn_extra"),
+                            address, CameraActivity.this);
+                    storePhoto(map, UtilityFunctions.getTimeStamp());
+                    mProgressDialogue.dismiss();
+                }
+            }
+            @Override
+            public void onStatusChanged(String provider, int status, Bundle extras) { }
+
+            @Override
+            public void onProviderEnabled(String provider) { }
+
+            @Override
+            public void onProviderDisabled(String provider) { }
+        };
+    }
     private void locationUpdater() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) !=
                 PackageManager.PERMISSION_GRANTED) {
@@ -284,6 +263,28 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
             }
             if (locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
                 locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 1, 1, locationListenerNP);
+                Location lastKnownLocation = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+                if (lastKnownLocation != null) {
+                    updateLocationInfo(lastKnownLocation);
+                }
+            }
+        }
+    }
+
+    private void locationUpdater2() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) !=
+                PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, REQUEST_FINE_LOCATION);
+        }else {
+            if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+                locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1, 1, locationListenerGPS2);
+                Location lastKnownLocation = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+                if (lastKnownLocation != null) {
+                    updateLocationInfo(lastKnownLocation);
+                }
+            }
+            if (locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
+                locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 1, 1, locationListenerNP2);
                 Location lastKnownLocation = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
                 if (lastKnownLocation != null) {
                     updateLocationInfo(lastKnownLocation);
@@ -352,6 +353,9 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
         params.setPreviewFrameRate(20);
         params.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE);
         params.setFlashMode(Camera.Parameters.FLASH_MODE_OFF);
+        params.setPictureFormat(PixelFormat.JPEG);
+        params.setSceneMode(Camera.Parameters.SCENE_MODE_STEADYPHOTO);
+        params.setWhiteBalance(Camera.Parameters.WHITE_BALANCE_AUTO);
         try{
             camera.setPreviewDisplay(surfaceHolder);
             camera.startPreview();
@@ -373,10 +377,7 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
         camera.setDisplayOrientation(90);
     }
     @Override
-    public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
-
-
-    }
+    public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) { }
 
     @Override
     public void surfaceDestroyed(SurfaceHolder holder) {
@@ -385,29 +386,22 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
         camera = null;
     }
 
-
     public void updateLocationInfo(Location location) {
         double lat = location.getLatitude();
         double log = location.getLongitude();
-
         Geocoder geocoder = new Geocoder(this, Locale.getDefault());
-
         try {
             List<Address> listAddresses = geocoder.getFromLocation(lat, log, 1);
             if (listAddresses != null && listAddresses.size() > 0){
                 address="";
-
                 if (listAddresses.get(0).getAddressLine(0) != null) {
                     address += listAddresses.get(0).getAddressLine(0);
                 }
-
                 Log.d("address", "updateLocationInfo: "+address);
-
             }
-        }catch(Exception e){
+        }catch(IOException e){
             e.printStackTrace();
-
+            address = lat + ", " + log;
         }
-
     }
 }
