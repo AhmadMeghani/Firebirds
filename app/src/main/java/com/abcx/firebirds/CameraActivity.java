@@ -61,6 +61,7 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
     private LocationListener locationListenerGPS, locationListenerNP, locationListenerGPS2, locationListenerNP2;
     private Boolean flag = true;
     private static final int REQUEST_FINE_LOCATION = 100;
+    private int tries = 0;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -258,11 +259,10 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
         }else {
             if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
                 locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1, 1, locationListenerGPS);
-                Location lastKnownLocation = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+                Location lastKnownLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
                 if (lastKnownLocation != null) {
                     updateLocationInfo(lastKnownLocation);
                     locationManager.removeUpdates(locationListenerGPS);
-
                 }
             }
             if (locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
@@ -271,7 +271,6 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
                 if (lastKnownLocation != null) {
                     updateLocationInfo(lastKnownLocation);
                     locationManager.removeUpdates(locationListenerNP);
-
                 }
             }
         }
@@ -281,24 +280,13 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) !=
                 PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, REQUEST_FINE_LOCATION);
-        }else {
+        } else {
             if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
                 locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1, 1, locationListenerGPS2);
-                Location lastKnownLocation = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
-                if (lastKnownLocation != null) {
-                    updateLocationInfo(lastKnownLocation);
-                    locationManager.removeUpdates(locationListenerGPS2);
-
-                }
             }
+
             if (locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
                 locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 1, 1, locationListenerNP2);
-                Location lastKnownLocation = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
-                if (lastKnownLocation != null) {
-                    updateLocationInfo(lastKnownLocation);
-                    locationManager.removeUpdates(locationListenerNP2);
-
-                }
             }
         }
     }
@@ -420,7 +408,12 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
             }
         }catch(IOException e){
             e.printStackTrace();
-            address = lat + ", " + log;
+            tries++;
+            Log.i("Try", tries + "");
+            if (tries == 4){
+                address = lat + ", " + log;
+                Log.i("Try1", address);
+            }
         }
     }
 }
