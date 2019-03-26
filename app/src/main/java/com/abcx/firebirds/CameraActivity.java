@@ -46,7 +46,7 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
     private SurfaceView camLayout;
     private Camera camera;
     private SurfaceHolder surfaceHolder;
-    private ProgressDialog mProgressDialogue, mImageSaving;
+    private ProgressDialog mProgressDialogue;
     private Camera.PictureCallback pictureCallback;
     private Camera.ShutterCallback shutterCallback;
     private Bitmap bitmap, map;
@@ -70,11 +70,6 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
         mProgressDialogue.setMessage("Please wait while we get your location...");
         mProgressDialogue.setCanceledOnTouchOutside(false);
         mProgressDialogue.setCancelable(false);
-        mImageSaving = new ProgressDialog(CameraActivity.this);
-        mImageSaving.setTitle("Saving Image");
-        mImageSaving.setMessage("Please wait while we save your image...");
-        mImageSaving.setCanceledOnTouchOutside(false);
-        mImageSaving.setCancelable(false);
         locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
         locationListenerGPS = new LocationListener() {
             @Override
@@ -191,14 +186,11 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
                     }
                 }
                 if (address != ""){
-                    mProgressDialogue.dismiss();
-                    mProgressDialogue = null;
-                    mImageSaving.show();
                     Log.i("Tag", "Saving");
                     map = UtilityFunctions.pasteWatermark(map, getIntent().getStringExtra("btn_extra"),
                             address, CameraActivity.this);
                     storePhoto(map, UtilityFunctions.getTimeStamp());
-                    mImageSaving.dismiss();
+                    mProgressDialogue.dismiss();
                 }else{
                     locationListenerGPS = new LocationListener() {
                         @Override
@@ -206,16 +198,13 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
                             updateLocationInfo(location);
                             if (address != "" && flag == true) {
                                 flag = false;
-                                mProgressDialogue.dismiss();
-                                mProgressDialogue = null;
                                 locationManager.removeUpdates(locationListenerGPS);
-                                mImageSaving.show();
                                 Log.i("Tag", "Saving");
                                 Log.i("LogGPS", location.toString());
                                 map = UtilityFunctions.pasteWatermark(map, getIntent().getStringExtra("btn_extra"),
                                         address, CameraActivity.this);
                                 storePhoto(map, UtilityFunctions.getTimeStamp());
-                                mImageSaving.dismiss();
+                                mProgressDialogue.dismiss();
                             }
                         }
                         @Override
@@ -239,16 +228,13 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
                             updateLocationInfo(location);
                             if (address != "" && flag == true) {
                                 flag = false;
-                                mProgressDialogue.dismiss();
-                                mProgressDialogue = null;
                                 locationManager.removeUpdates(locationListenerNP);
-                                mImageSaving.show();
                                 Log.i("Tag", "Saving");
                                 Log.i("LogNP", location.toString());
                                 map = UtilityFunctions.pasteWatermark(map, getIntent().getStringExtra("btn_extra"),
                                         address, CameraActivity.this);
                                 storePhoto(map, UtilityFunctions.getTimeStamp());
-                                mImageSaving.dismiss();
+                                mProgressDialogue.dismiss();
                             }
                         }
                         @Override
@@ -369,8 +355,12 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
         List<Camera.Size> sizes = params.getSupportedPictureSizes();
         Camera.Size size = sizes.get(0);
         for (int i = 0; i < sizes.size(); i++) {
-            if (sizes.get(i).width > size.width)
-                size = sizes.get(i);
+            if (sizes.get(i).width > size.width) {
+                size.width = sizes.get(i).width;
+            }
+            if (sizes.get(i).height > size.height) {
+                size.height = sizes.get(i).height;
+            }
         }
         params.setPictureSize(size.width, size.height);
         camera.setParameters(params);
