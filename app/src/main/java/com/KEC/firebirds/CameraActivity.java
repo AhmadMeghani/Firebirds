@@ -1,4 +1,4 @@
-package com.abcx.firebirds;
+package com.KEC.firebirds;
 
 import android.Manifest;
 import android.app.ProgressDialog;
@@ -48,6 +48,8 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
 
     private Button btnCapture;
     private ImageButton btnDone, btnCamSwitch;
+    private Toast imageSaved;
+    private Boolean toast = true;
     private SurfaceView camLayout;
     private Camera camera;
     private SurfaceHolder surfaceHolder;
@@ -336,7 +338,10 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
             Uri contentUri = Uri.fromFile(f);
             mediaScanIntent.setData(contentUri);
             this.sendBroadcast(mediaScanIntent);
-            Toast.makeText(CameraActivity.this, "Image Saved!", Toast.LENGTH_SHORT).show();
+            if (toast) {
+                Toast.makeText(CameraActivity.this, "Image Saved!", Toast.LENGTH_SHORT).show();
+            }
+
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         } catch (IOException e) {
@@ -412,6 +417,8 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
             Log.i("Try", tries + "");
             if (tries == 4){
                 address = lat + ", " + log;
+                Toast.makeText(CameraActivity.this, "Location fetched! Address not found.\nPlease check your internet connection", Toast.LENGTH_LONG).show();
+                toast = false;
                 Log.i("Try1", address);
             }
         }

@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Firebirds</string>
+    <string name="app_name">KEC - Photo Stamp</string>
     <string name="camSwitch">camera switch icon resourse</string>
     <string name="doneBtn">close button to return to main screen</string>
     <string name="appLogo">Firebird Logo</string>

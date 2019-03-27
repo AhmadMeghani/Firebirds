@@ -1,4 +1,4 @@
-package com.abcx.firebirds;
+package com.KEC.firebirds;
 
 import android.Manifest;
 import android.content.Intent;

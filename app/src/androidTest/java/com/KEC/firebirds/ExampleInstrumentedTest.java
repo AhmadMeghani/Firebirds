@@ -1,4 +1,4 @@
-package com.abcx.firebirds;
+package com.KEC.firebirds;
 
 import android.content.Context;
 import android.support.test.InstrumentationRegistry;
@@ -21,6 +21,6 @@ public class ExampleInstrumentedTest {
         // Context of the app under test.
         Context appContext = InstrumentationRegistry.getTargetContext();
 
-        assertEquals("com.abcx.firebirds", appContext.getPackageName());
+        assertEquals("com.KEC.firebirds", appContext.getPackageName());
     }
 }

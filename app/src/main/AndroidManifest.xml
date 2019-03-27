@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.abcx.firebirds">
+    package="com.KEC.firebirds">
 
     <uses-feature
         android:name="android.hardware.camera"
@@ -21,8 +21,8 @@
         android:theme="@style/AppTheme"
         android:hardwareAccelerated="false"
         android:largeHeap="true">
-        <activity android:name=".CameraActivity"></activity>
-        <activity android:name=".MainActivity">
+        <activity android:name="com.KEC.firebirds.CameraActivity"></activity>
+        <activity android:name="com.KEC.firebirds.MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
