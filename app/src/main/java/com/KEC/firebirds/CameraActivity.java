@@ -9,7 +9,6 @@ import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
-import android.graphics.PixelFormat;
 import android.graphics.drawable.BitmapDrawable;
 import android.hardware.Camera;
 import android.location.Address;
@@ -48,8 +47,7 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
 
     private Button btnCapture;
     private ImageButton btnDone, btnCamSwitch;
-    private Toast imageSaved;
-    private Boolean toast = true;
+    private String toastText;
     private SurfaceView camLayout;
     private Camera camera;
     private SurfaceHolder surfaceHolder;
@@ -338,10 +336,10 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
             Uri contentUri = Uri.fromFile(f);
             mediaScanIntent.setData(contentUri);
             this.sendBroadcast(mediaScanIntent);
-            if (toast) {
-                Toast.makeText(CameraActivity.this, "Image Saved!", Toast.LENGTH_SHORT).show();
+            if (!toastText.equals("")){
+                Toast.makeText(CameraActivity.this, toastText, Toast.LENGTH_LONG).show();
             }
-
+            Toast.makeText(CameraActivity.this, "Image Saved!", Toast.LENGTH_SHORT).show();
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         } catch (IOException e) {
@@ -352,8 +350,8 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
     @Override
     public void surfaceCreated(SurfaceHolder holder) {
         try{
-            camera = Camera.open();
             currentCameraId = Camera.CameraInfo.CAMERA_FACING_BACK;
+            camera = Camera.open();
         }catch (Exception e){
             e.printStackTrace();
         }
@@ -361,41 +359,61 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
     }
 
     private void cameraParas(){
-        Camera.Parameters params = camera.getParameters();
-        params.setPreviewFrameRate(20);
-        params.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE);
-        params.setFlashMode(Camera.Parameters.FLASH_MODE_OFF);
-        params.setPictureFormat(PixelFormat.JPEG);
-        params.setSceneMode(Camera.Parameters.SCENE_MODE_STEADYPHOTO);
-        params.setWhiteBalance(Camera.Parameters.WHITE_BALANCE_AUTO);
-        try{
-            camera.setPreviewDisplay(surfaceHolder);
-            camera.startPreview();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        List<Camera.Size> sizes = params.getSupportedPictureSizes();
-        Camera.Size size = sizes.get(0);
-        for (int i = 0; i < sizes.size(); i++) {
-            if (sizes.get(i).width > size.width) {
-                size.width = sizes.get(i).width;
+        if (camera != null){
+            Camera.Parameters params = camera.getParameters();
+            params.setPreviewFrameRate(20);
+            if (CameraActivity.this.getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA_AUTOFOCUS)){
+                params.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE);
+            }else {
+                params.setFocusMode(Camera.Parameters.FOCUS_MODE_AUTO);
             }
-            if (sizes.get(i).height > size.height) {
-                size.height = sizes.get(i).height;
+            params.setFlashMode(Camera.Parameters.FLASH_MODE_OFF);
+
+            List<Camera.Size> sizes = params.getSupportedPictureSizes();
+            Camera.Size size = sizes.get(0);
+            for (int i = 0; i < sizes.size(); i++) {
+                if (sizes.get(i).width > size.width) {
+                    size.width = sizes.get(i).width;
+                }
+                if (sizes.get(i).height > size.height) {
+                    size.height = sizes.get(i).height;
+                }
             }
+            params.setPictureSize(size.width, size.height);
+            sizes = params.getSupportedPreviewSizes();
+            size = sizes.get(0);
+            for (int i = 0; i < sizes.size(); i++) {
+                if (sizes.get(i).width > size.width) {
+                    size.width = sizes.get(i).width;
+                }
+                if (sizes.get(i).height > size.height) {
+                    size.height = sizes.get(i).height;
+                }
+            }
+            camera.setParameters(params);
+            camera.setDisplayOrientation(90);
+            try{
+                camera.setPreviewDisplay(surfaceHolder);
+                camera.startPreview();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }else{
+            Toast.makeText(CameraActivity.this, "Camera Not Responding!", Toast.LENGTH_SHORT).show();
+            finish();
         }
-        params.setPictureSize(size.width, size.height);
-        camera.setParameters(params);
-        camera.setDisplayOrientation(90);
+
     }
     @Override
     public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) { }
 
     @Override
     public void surfaceDestroyed(SurfaceHolder holder) {
-        camera.stopPreview();
-        camera.release();
-        camera = null;
+        if (camera != null){
+            camera.stopPreview();
+            camera.release();
+            camera = null;
+        }
     }
 
     public void updateLocationInfo(Location location) {
@@ -403,9 +421,10 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
         double log = location.getLongitude();
         Geocoder geocoder = new Geocoder(this, Locale.getDefault());
         try {
-            List<Address> listAddresses = geocoder.getFromLocation(lat, log, 1);
+            List<Address> listAddresses = geocoder.getFromLocation(lat, log, 0);
             if (listAddresses != null && listAddresses.size() > 0){
                 address="";
+                toastText = "";
                 if (listAddresses.get(0).getAddressLine(0) != null) {
                     address += listAddresses.get(0).getAddressLine(0);
                 }
@@ -414,12 +433,9 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
         }catch(IOException e){
             e.printStackTrace();
             tries++;
-            Log.i("Try", tries + "");
-            if (tries == 4){
+            if (tries >= 4){
                 address = lat + ", " + log;
-                Toast.makeText(CameraActivity.this, "Location fetched! Address not found.\nPlease check your internet connection", Toast.LENGTH_LONG).show();
-                toast = false;
-                Log.i("Try1", address);
+                toastText = "Location fetched! \nAddress not found.\nPlease check your internet connection";
             }
         }
     }
