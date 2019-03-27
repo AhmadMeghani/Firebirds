@@ -61,7 +61,7 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
     private LocationListener locationListenerGPS, locationListenerNP, locationListenerGPS2, locationListenerNP2;
     private Boolean flag = true;
     private static final int REQUEST_FINE_LOCATION = 100;
-    private int tries = 0;
+    private int tries = 0, MP = 0;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -322,7 +322,7 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
     }
 
     private void storePhoto(Bitmap map, String path) {
-        File file = new File(Environment.getExternalStorageDirectory() + "/DCIM/Firebird");
+        File file = new File(Environment.getExternalStorageDirectory() + "/DCIM/KEC PhotoStamp");
         if (!file.isDirectory()) {
             file.mkdir();
         }
@@ -423,7 +423,7 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
         double log = location.getLongitude();
         Geocoder geocoder = new Geocoder(this, Locale.getDefault());
         try {
-            List<Address> listAddresses = geocoder.getFromLocation(lat, log, 0);
+            List<Address> listAddresses = geocoder.getFromLocation(lat, log, 1);
             if (listAddresses != null && listAddresses.size() > 0){
                 address="";
                 toastText = "";
