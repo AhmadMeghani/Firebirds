@@ -21,8 +21,12 @@
         android:theme="@style/AppTheme"
         android:hardwareAccelerated="false"
         android:largeHeap="true">
-        <activity android:name="com.KEC.firebirds.CameraActivity"></activity>
-        <activity android:name="com.KEC.firebirds.MainActivity">
+        <activity
+            android:name="com.KEC.firebirds.CameraActivity"
+            android:screenOrientation="portrait"></activity>
+        <activity
+            android:name="com.KEC.firebirds.MainActivity"
+            android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

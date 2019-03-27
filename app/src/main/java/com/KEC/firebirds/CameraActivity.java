@@ -338,8 +338,10 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
             this.sendBroadcast(mediaScanIntent);
             if (!toastText.equals("")){
                 Toast.makeText(CameraActivity.this, toastText, Toast.LENGTH_LONG).show();
+            } else {
+                Toast.makeText(CameraActivity.this, "Image Saved!", Toast.LENGTH_SHORT).show();
             }
-            Toast.makeText(CameraActivity.this, "Image Saved!", Toast.LENGTH_SHORT).show();
+
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         } catch (IOException e) {
