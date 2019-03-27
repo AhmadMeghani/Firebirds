@@ -6,4 +6,6 @@
     <string name="second">Second</string>
     <string name="first">First</string>
     <string name="wood_fired_grill">Wood Fired Grill</string>
+    <string name="splashscreen">Splash Screen Image</string>
+    <string name="camFlash">Flash Camera</string>
 </resources>

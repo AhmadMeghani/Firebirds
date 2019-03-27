@@ -26,7 +26,6 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
@@ -61,7 +60,7 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
     private LocationListener locationListenerGPS, locationListenerNP, locationListenerGPS2, locationListenerNP2;
     private Boolean flag = true;
     private static final int REQUEST_FINE_LOCATION = 100;
-    private int tries = 0, MP = 0;
+    private int tries = 0;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -84,7 +83,6 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
             public void onLocationChanged(Location location) {
                 updateLocationInfo(location);
                 locationManager.removeUpdates(locationListenerGPS);
-                Log.i("LogGPS", location.toString());
             }
 
             @Override
@@ -101,7 +99,6 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
             public void onLocationChanged(Location location) {
                 updateLocationInfo(location);
                 locationManager.removeUpdates(locationListenerNP);
-                Log.i("LogNP", location.toString());
             }
 
             @Override
@@ -183,7 +180,6 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
                     }
                 }
                 if (!address.equals("")) {
-                    Log.i("Tag", "Saving");
                     map = UtilityFunctions.pasteWatermark(map, getIntent().getStringExtra("btn_extra"),
                             address, CameraActivity.this);
                     storePhoto(map, UtilityFunctions.getTimeStamp());
@@ -210,8 +206,6 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
                 if (!address.equals("") && flag) {
                     flag = false;
                     locationManager.removeUpdates(locationListenerGPS2);
-                    Log.i("Tag", "Saving");
-                    Log.i("LogGPS2", location.toString());
                     map = UtilityFunctions.pasteWatermark(map, getIntent().getStringExtra("btn_extra"),
                             address, CameraActivity.this);
                     storePhoto(map, UtilityFunctions.getTimeStamp());
@@ -234,8 +228,6 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
                 if (!address.equals("") && flag) {
                     flag = false;
                     locationManager.removeUpdates(locationListenerNP2);
-                    Log.i("Tag", "Saving");
-                    Log.i("LogNP2", location.toString());
                     map = UtilityFunctions.pasteWatermark(map, getIntent().getStringExtra("btn_extra"),
                             address, CameraActivity.this);
                     storePhoto(map, UtilityFunctions.getTimeStamp());
@@ -430,7 +422,6 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
                 if (listAddresses.get(0).getAddressLine(0) != null) {
                     address += listAddresses.get(0).getAddressLine(0);
                 }
-                Log.d("address", "updateLocationInfo: "+address);
             }
         }catch(IOException e){
             e.printStackTrace();
