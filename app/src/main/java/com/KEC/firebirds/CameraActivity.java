@@ -45,7 +45,7 @@ import java.util.Locale;
 public class CameraActivity extends AppCompatActivity implements SurfaceHolder.Callback {
 
     private Button btnCapture;
-    private ImageButton btnDone, btnCamSwitch;
+    private ImageButton btnDone, btnCamSwitch, btnFlash;
     private String toastText;
     private SurfaceView camLayout;
     private Camera camera;
@@ -72,11 +72,16 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
         btnCapture = findViewById(R.id.clickButton);
         btnDone = findViewById(R.id.done);
         btnCamSwitch = findViewById(R.id.camSwitch);
+        btnFlash = findViewById(R.id.camFlash);
+        btnFlash.setVisibility(View.GONE);
         mProgressDialogue = new ProgressDialog(CameraActivity.this);
         mProgressDialogue.setTitle("Getting Location");
         mProgressDialogue.setMessage("Please wait while we get your location...");
         mProgressDialogue.setCanceledOnTouchOutside(false);
         mProgressDialogue.setCancelable(false);
+        if (CameraActivity.this.getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA_FLASH)){
+            btnFlash.setVisibility(View.VISIBLE);
+        }
         locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
         locationListenerGPS = new LocationListener() {
             @Override
@@ -116,6 +121,24 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
             @Override
             public void onClick(View v) {
                 finish();
+            }
+        });
+        btnFlash.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Camera.Parameters parameters = camera.getParameters();
+                if (CameraActivity.this.getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA_FLASH)){
+                    if (parameters.getFlashMode().equals(Camera.Parameters.FLASH_MODE_OFF)) {
+                        parameters.setFlashMode(Camera.Parameters.FLASH_MODE_ON);
+                        btnFlash.setBackgroundResource(R.drawable.ic_action_flashOn);
+                    } else if (parameters.getFlashMode().equals(Camera.Parameters.FLASH_MODE_ON)) {
+                        parameters.setFlashMode(Camera.Parameters.FLASH_MODE_AUTO);
+                        btnFlash.setBackgroundResource(R.drawable.ic_action_flashAuto);
+                    } else if (parameters.getFlashMode().equals(Camera.Parameters.FLASH_MODE_AUTO)) {
+                        parameters.setFlashMode(Camera.Parameters.FLASH_MODE_OFF);
+                        btnFlash.setBackgroundResource(R.drawable.ic_action_flashOn);
+                    }
+                }
             }
         });
         btnCamSwitch.setOnClickListener(new View.OnClickListener() {
