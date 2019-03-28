@@ -79,9 +79,6 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
         mProgressDialogue.setMessage("Please wait while we get your location...");
         mProgressDialogue.setCanceledOnTouchOutside(false);
         mProgressDialogue.setCancelable(false);
-        if (CameraActivity.this.getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA_FLASH)){
-            btnFlash.setVisibility(View.VISIBLE);
-        }
         locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
         locationListenerGPS = new LocationListener() {
             @Override
@@ -130,13 +127,13 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
                 if (CameraActivity.this.getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA_FLASH)){
                     if (parameters.getFlashMode().equals(Camera.Parameters.FLASH_MODE_OFF)) {
                         parameters.setFlashMode(Camera.Parameters.FLASH_MODE_ON);
-                        btnFlash.setBackgroundResource(R.drawable.ic_action_flashon);
+                        btnFlash.setImageResource(R.drawable.ic_action_flashon);
                     } else if (parameters.getFlashMode().equals(Camera.Parameters.FLASH_MODE_ON)) {
                         parameters.setFlashMode(Camera.Parameters.FLASH_MODE_AUTO);
-                        btnFlash.setBackgroundResource(R.drawable.ic_action_flashauto);
+                        btnFlash.setImageResource(R.drawable.ic_action_flashauto);
                     } else if (parameters.getFlashMode().equals(Camera.Parameters.FLASH_MODE_AUTO)) {
                         parameters.setFlashMode(Camera.Parameters.FLASH_MODE_OFF);
-                        btnFlash.setBackgroundResource(R.drawable.ic_action_flashoff);
+                        btnFlash.setImageResource(R.drawable.ic_action_flashoff);
                     }
                     camera.setParameters(parameters);
                     camera.startPreview();
@@ -148,9 +145,12 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
             public void onClick(View v) {
                 if (currentCameraId == Camera.CameraInfo.CAMERA_FACING_BACK){
                     currentCameraId = Camera.CameraInfo.CAMERA_FACING_FRONT;
-                    if (camera.getParameters().getSupportedFlashModes() == null){
-
-                    }else{
+                    if (camera.getParameters().getSupportedFlashModes() == null) {
+                        Camera.Parameters parameters = camera.getParameters();
+                        parameters.setFlashMode(Camera.Parameters.FLASH_MODE_AUTO);
+                        camera.setParameters(parameters);
+                        btnFlash.setVisibility(View.VISIBLE);
+                    } else {
                         btnFlash.setEnabled(false);
                         btnFlash.setVisibility(View.INVISIBLE);
                     }
@@ -188,7 +188,6 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
                             .setNegativeButton("No", null)
                             .show();
                 } else {
-                    mProgressDialogue.show();
                     camera.takePicture(shutterCallback, null, pictureCallback);
                     btnCapture.setEnabled(false);
                     btnDone.setEnabled(false);
@@ -199,6 +198,7 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
         pictureCallback = new Camera.PictureCallback() {
             @Override
             public void onPictureTaken(byte[] data, Camera camera) {
+                mProgressDialogue.show();
                 CameraActivity.this.camera.stopPreview();
                 bitmap = BitmapFactory.decodeByteArray(data, 0, data.length);
                 map = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), null, true);
@@ -377,6 +377,12 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
         try{
             currentCameraId = Camera.CameraInfo.CAMERA_FACING_BACK;
             camera = Camera.open();
+            if (CameraActivity.this.getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA_FLASH)) {
+                Camera.Parameters parameters = camera.getParameters();
+                parameters.setFlashMode(Camera.Parameters.FLASH_MODE_AUTO);
+                camera.setParameters(parameters);
+                btnFlash.setVisibility(View.VISIBLE);
+            }
         }catch (Exception e){
             e.printStackTrace();
         }
@@ -392,8 +398,6 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
             }else {
                 params.setFocusMode(Camera.Parameters.FOCUS_MODE_AUTO);
             }
-            params.setFlashMode(Camera.Parameters.FLASH_MODE_OFF);
-
             List<Camera.Size> sizes = params.getSupportedPictureSizes();
             Camera.Size size = sizes.get(0);
             for (int i = 0; i < sizes.size(); i++) {

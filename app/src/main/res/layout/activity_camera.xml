@@ -68,7 +68,7 @@
         android:layout_marginBottom="65dp"
         android:background="@android:color/transparent"
         android:contentDescription="@string/cameraFlash"
-        app:srcCompat="@drawable/ic_action_flashon" />
+        app:srcCompat="@drawable/ic_action_flashauto" />
 
 
 </RelativeLayout>
