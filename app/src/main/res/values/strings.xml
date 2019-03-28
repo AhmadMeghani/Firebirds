@@ -8,4 +8,5 @@
     <string name="wood_fired_grill">Wood Fired Grill</string>
     <string name="splashscreen">Splash Screen Image</string>
     <string name="camFlash">Flash Camera</string>
+    <string name="cameraFlash">Camera Flash on, off, auto</string>
 </resources>

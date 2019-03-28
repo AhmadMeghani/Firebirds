@@ -130,13 +130,13 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
                 if (CameraActivity.this.getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA_FLASH)){
                     if (parameters.getFlashMode().equals(Camera.Parameters.FLASH_MODE_OFF)) {
                         parameters.setFlashMode(Camera.Parameters.FLASH_MODE_ON);
-                        btnFlash.setBackgroundResource(R.drawable.ic_action_flashOn);
+                        btnFlash.setBackgroundResource(R.drawable.ic_action_flashon);
                     } else if (parameters.getFlashMode().equals(Camera.Parameters.FLASH_MODE_ON)) {
                         parameters.setFlashMode(Camera.Parameters.FLASH_MODE_AUTO);
-                        btnFlash.setBackgroundResource(R.drawable.ic_action_flashAuto);
+                        btnFlash.setBackgroundResource(R.drawable.ic_action_flashauto);
                     } else if (parameters.getFlashMode().equals(Camera.Parameters.FLASH_MODE_AUTO)) {
                         parameters.setFlashMode(Camera.Parameters.FLASH_MODE_OFF);
-                        btnFlash.setBackgroundResource(R.drawable.ic_action_flashOn);
+                        btnFlash.setBackgroundResource(R.drawable.ic_action_flashon);
                     }
                 }
             }
