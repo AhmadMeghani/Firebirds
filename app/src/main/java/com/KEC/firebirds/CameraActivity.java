@@ -136,8 +136,10 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
                         btnFlash.setBackgroundResource(R.drawable.ic_action_flashauto);
                     } else if (parameters.getFlashMode().equals(Camera.Parameters.FLASH_MODE_AUTO)) {
                         parameters.setFlashMode(Camera.Parameters.FLASH_MODE_OFF);
-                        btnFlash.setBackgroundResource(R.drawable.ic_action_flashon);
+                        btnFlash.setBackgroundResource(R.drawable.ic_action_flashoff);
                     }
+                    camera.setParameters(parameters);
+                    camera.startPreview();
                 }
             }
         });
@@ -146,6 +148,12 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
             public void onClick(View v) {
                 if (currentCameraId == Camera.CameraInfo.CAMERA_FACING_BACK){
                     currentCameraId = Camera.CameraInfo.CAMERA_FACING_FRONT;
+                    if (camera.getParameters().getSupportedFlashModes() == null){
+
+                    }else{
+                        btnFlash.setEnabled(false);
+                        btnFlash.setVisibility(View.INVISIBLE);
+                    }
                 }else{
                     currentCameraId = Camera.CameraInfo.CAMERA_FACING_BACK;
                 }
