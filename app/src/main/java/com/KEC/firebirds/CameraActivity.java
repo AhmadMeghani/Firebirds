@@ -156,8 +156,13 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
                     }
                 }else{
                     currentCameraId = Camera.CameraInfo.CAMERA_FACING_BACK;
+                    Camera.Parameters parameters = camera.getParameters();
+                    parameters.setFlashMode(Camera.Parameters.FLASH_MODE_OFF);
+                    btnFlash.setImageResource(R.drawable.ic_action_flashoff);
+                    camera.setParameters(parameters);
                     btnFlash.setEnabled(true);
                     btnFlash.setVisibility(View.VISIBLE);
+
                 }
                 camera.stopPreview();
                 camera.release();
